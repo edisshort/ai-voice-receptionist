@@ -1,0 +1,357 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+<title>AI Voice Receptionist</title>
+</head>
+
+<body>
+
+<h2>AI Voice Receptionist</h2>
+
+<button onclick="startListening()">Start Conversation</button>
+<button onclick="stopListening()">Stop</button>
+
+<p id="userText"></p>
+<p id="aiText"></p>
+
+<script>
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const recognition = new SpeechRecognition();
+
+recognition.lang = "en-US";
+recognition.continuous = false;
+recognition.interimResults = false;
+
+console.log("Voice system ready");
+
+function startListening() {
+
+    console.log("Conversation started");
+
+    recognition.start();
+}
+
+function stopListening() {
+
+    console.log("Conversation stopped");
+
+    recognition.stop();
+}
+
+recognition.onstart = () => {
+
+    console.log("Mic started");
+};
+
+recognition.onspeechstart = () => {
+
+    console.log("Speech detected");
+};
+
+recognition.onspeechend = () => {
+
+    console.log("Speech ended");
+};
+
+recognition.onerror = (event) => {
+
+    console.error("Speech error:", event.error);
+};
+
+recognition.onresult = async function(event) {
+
+    const transcript = event.results[0][0].transcript;
+
+    console.log("You said:", transcript);
+
+    document.getElementById("userText").innerText =
+        "You: " + transcript;
+
+    document.getElementById("aiText").innerHTML = "<b>AI:</b> Thinking...";
+
+    const response = await fetch("http://127.0.0.1:8000/chat", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            message: transcript
+        })
+    });
+
+    const data = await response.json();
+
+    console.log("AI replied:", data.reply);
+
+    document.getElementById("aiText").innerHTML =
+    "<b>AI:</b> " + data.reply.replace(/\*\*/g, "");
+
+    const speech = new SpeechSynthesisUtterance(data.reply);
+
+    const voices = speechSynthesis.getVoices();
+
+    // speech.voice = voices.find(v => v.name === "Google UK English Female");
+
+    speech.voice = voices.find(v => v.lang.includes("hi")) || voices[0];
+
+    speech.pitch = 1.2;
+
+    speech.rate = 0.95;
+
+    speech.onend = () => {
+
+        console.log("AI finished speaking, listening again...");
+
+        recognition.start();
+    };
+
+    speechSynthesis.speak(speech);
+};
+
+recognition.onend = () => {
+
+    console.log("Recognition ended");
+};
+
+</script>
+
+</body>
+</html> -->
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>AI Voice Receptionist</title>
+
+<!-- Three.js for liquid background -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    overflow:hidden;
+}
+
+/* animated background */
+#liquid-bg{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    z-index:-1;
+}
+
+/* UI container */
+.ui{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:rgba(255,255,255,0.9);
+    padding:30px;
+    border-radius:12px;
+    text-align:center;
+    width:400px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+button{
+    padding:10px 20px;
+    margin:10px;
+    border:none;
+    border-radius:6px;
+    background:#5227FF;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#3f1ed6;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- liquid background -->
+<div id="liquid-bg"></div>
+
+<div class="ui">
+
+<h2>AI Voice Receptionist</h2>
+
+<button onclick="startListening()">Start Conversation</button>
+<button onclick="stopListening()">Stop</button>
+
+<p id="userText"></p>
+<p id="aiText"></p>
+
+</div>
+
+<script>
+
+/* ---------------------------
+   LIQUID BACKGROUND
+--------------------------- */
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
+);
+
+const renderer = new THREE.WebGLRenderer({alpha:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+
+document.getElementById("liquid-bg").appendChild(renderer.domElement);
+
+const geometry = new THREE.PlaneGeometry(12,12,120,120);
+
+const material = new THREE.MeshBasicMaterial({
+    color:0x5227FF,
+    wireframe:true
+});
+
+const plane = new THREE.Mesh(geometry,material);
+scene.add(plane);
+
+camera.position.z = 5;
+
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    plane.rotation.x += 0.0015;
+    plane.rotation.y += 0.002;
+
+    renderer.render(scene,camera);
+}
+
+animate();
+
+window.addEventListener("resize",()=>{
+
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+
+});
+
+
+/* ---------------------------
+   VOICE RECEPTIONIST
+--------------------------- */
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const recognition = new SpeechRecognition();
+
+recognition.lang = "en-US";
+recognition.continuous = false;
+recognition.interimResults = false;
+
+console.log("Voice system ready");
+
+function startListening() {
+
+    console.log("Conversation started");
+    recognition.start();
+}
+
+function stopListening() {
+
+    console.log("Conversation stopped");
+    recognition.stop();
+}
+
+recognition.onstart = () => {
+
+    console.log("Mic started");
+};
+
+recognition.onspeechstart = () => {
+
+    console.log("Speech detected");
+};
+
+recognition.onspeechend = () => {
+
+    console.log("Speech ended");
+};
+
+recognition.onerror = (event) => {
+
+    console.error("Speech error:", event.error);
+};
+
+recognition.onresult = async function(event) {
+
+    const transcript = event.results[0][0].transcript;
+
+    console.log("You said:", transcript);
+
+    document.getElementById("userText").innerText =
+        "You: " + transcript;
+
+    document.getElementById("aiText").innerHTML = "<b>AI:</b> Thinking...";
+
+    const response = await fetch("http://127.0.0.1:8000/chat", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            message: transcript
+        })
+    });
+
+    const data = await response.json();
+
+    console.log("AI replied:", data.reply);
+
+    document.getElementById("aiText").innerHTML =
+    "<b>AI:</b> " + data.reply.replace(/\*\*/g, "");
+
+    const speech = new SpeechSynthesisUtterance(data.reply);
+
+    const voices = speechSynthesis.getVoices();
+
+    speech.voice = voices.find(v => v.lang.includes("hi")) || voices[0];
+
+    speech.pitch = 1.2;
+    speech.rate = 0.95;
+
+    speech.onend = () => {
+
+        console.log("AI finished speaking, listening again...");
+
+        recognition.start();
+    };
+
+    speechSynthesis.speak(speech);
+};
+
+recognition.onend = () => {
+
+    console.log("Recognition ended");
+};
+
+</script>
+
+</body>
+</html>
